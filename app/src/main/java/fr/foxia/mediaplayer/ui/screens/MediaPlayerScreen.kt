@@ -1,8 +1,7 @@
-package fr.oussama.mediaplayer.ui.screens
+package fr.foxia.mediaplayer.ui.screens
 
-import java.lang.Float
 import android.net.Uri
-import android.view.ViewGroup
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -16,12 +15,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import fr.oussama.mediaplayer.R
-import fr.oussama.mediaplayer.viewmodels.MediaPlayerViewModel
+import fr.foxia.mediaplayer.R
+import fr.foxia.mediaplayer.viewmodels.MediaPlayerViewModel
 
 
 @Composable
@@ -34,49 +36,27 @@ fun MediaPlayerScreen(
     val isPrepared = viewModel.isPrepared.collectAsState()
     val mediaPlayer = viewModel.mediaPlayer.collectAsState()
     val videoView = viewModel.videoView.collectAsState()
-    var duration = remember {
-        mutableStateOf(1)
-    }
-    var videoAspectRatio = remember {
-        mutableStateOf(1f)
-    }
-    var videoWidth = remember {
-        mutableStateOf(0)
-    }
-    var videoHeight = remember {
-        mutableStateOf(0)
-    }
+    val duration = viewModel.duration.collectAsState()
+    val videoViewPosition = remember { mutableStateOf(IntOffset.Zero) }
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
+            .background(color = Color.Black)
+            .padding(bottom = 10.dp)
     ) {
 
         AndroidView(
-            factory = {
-                videoView.value.layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-                videoView.value.setOnPreparedListener {
-                    videoWidth.value = mediaPlayer.value.videoWidth
-                    videoHeight.value = mediaPlayer.value.videoHeight
-                    videoAspectRatio.value = videoWidth.value.toFloat() / videoHeight.value.toFloat()
-                    videoView.value.layoutParams = ViewGroup.LayoutParams(
-                        videoView.value.width,
-                        (videoView.value.width / videoAspectRatio.value).toInt()
+            modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned { coordinates ->
+                    videoViewPosition.value = IntOffset(
+                        x = coordinates.positionInParent().x.toInt(),
+                        y = coordinates.positionInParent().y.toInt()
                     )
-                    duration.value = mediaPlayer.value.duration
-                    viewModel.saveIsPrepared(true)
-                    if (isPlaying.value) {
-                        mediaPlayer.value.start()
-                        mediaPlayer.value.seekTo(currentPosition.value)
-                    }
-                }
+                },
+            factory = {
                 videoView.value
             },
-            modifier  = Modifier
-                .fillMaxSize()
-                .align(Alignment.Center),
             update = { view ->
                 if (isPrepared.value) {
                     if (isPlaying.value) {
@@ -101,17 +81,23 @@ fun MediaPlayerScreen(
             }
         )
 
-        Column(
+
+        LinearProgressIndicator(
+            progress = currentPosition.value.toFloat() / duration.value,
             modifier = Modifier
-                .align(Alignment.Center)
-                .padding(top = (videoWidth.value / videoAspectRatio.value).dp)
-        ) {
-            LinearProgressIndicator(
-                progress = currentPosition.value.toFloat() / duration.value,
-                modifier = Modifier.fillMaxWidth(),
-                color = Color.Red
-            )
-        }
+                .fillMaxWidth()
+                .layout { measurable, constraints ->
+                    val placeable = measurable.measure(constraints)
+                    layout(constraints.maxWidth, placeable.height) {
+                        println("y " + videoViewPosition.value.y)
+                        println("height " + videoView.value.height)
+                        placeable.placeRelative(0,
+                            videoViewPosition.value.y + videoView.value.height
+                        )
+                    }
+                },
+            color = Color.Red
+        )
 
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -125,9 +111,12 @@ fun MediaPlayerScreen(
             ) {
                 Icon(
                     painter = painterResource(
-                        if (isPlaying.value) R.drawable.baseline_pause_24 else R.drawable.baseline_play_arrow_24
+                        if (isPlaying.value) fr.foxia.mediaplayer.R.drawable.baseline_pause_24 else R.drawable.baseline_play_arrow_24
                     ),
-                    contentDescription = if (isPlaying.value) "Pause" else "Play"
+                    contentDescription = if (isPlaying.value) "Pause" else "Play",
+                    modifier = Modifier
+                        .height(50.dp)
+                        .width(50.dp)
                 )
             }
         }
@@ -144,6 +133,7 @@ fun MediaPlayerScreen(
             // Complete the video playback on screen rotation
             if (mediaPlayer.value.isPlaying) {
                 viewModel.saveCurrentPosition(mediaPlayer.value.currentPosition)
+                viewModel.setupMediaPlayerCallbacks();
             }
         }
     }

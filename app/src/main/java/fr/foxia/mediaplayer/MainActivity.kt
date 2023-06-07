@@ -1,13 +1,13 @@
-package fr.oussama.mediaplayer
+package fr.foxia.mediaplayer
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.lifecycle.ViewModelProvider
 import dagger.hilt.android.AndroidEntryPoint
-import fr.oussama.mediaplayer.ui.screens.MediaPlayerScreen
-import fr.oussama.mediaplayer.ui.theme.MediaplayerTheme
-import fr.oussama.mediaplayer.viewmodels.MediaPlayerViewModel
+import fr.foxia.mediaplayer.ui.screens.MediaPlayerScreen
+import fr.foxia.mediaplayer.ui.theme.MediaplayerTheme
+import fr.foxia.mediaplayer.viewmodels.MediaPlayerViewModel
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

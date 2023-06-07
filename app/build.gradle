@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace 'fr.oussama.mediaplayer'
+    namespace 'fr.foxia.mediaplayer'
     compileSdk 33
 
     defaultConfig {
-        applicationId "fr.oussama.mediaplayer"
+        applicationId "fr.foxia.mediaplayer"
         minSdk 24
         targetSdk 33
         versionCode 1

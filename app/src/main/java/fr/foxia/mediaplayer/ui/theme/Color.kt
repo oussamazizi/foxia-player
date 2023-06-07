@@ -1,4 +1,4 @@
-package fr.oussama.mediaplayer.ui.theme
+package fr.foxia.mediaplayer.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

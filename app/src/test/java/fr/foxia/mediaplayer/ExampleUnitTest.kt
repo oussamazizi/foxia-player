@@ -1,4 +1,4 @@
-package fr.oussama.mediaplayer
+package fr.foxia.mediaplayer
 
 import org.junit.Test
 
